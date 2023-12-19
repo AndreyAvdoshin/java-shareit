@@ -42,11 +42,12 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
-        User user = userRepository.getById(userId); // Првоерка на наличие пользователя
-        user = UserMapper.toUser(userDto);
+        // Переделать логику одновления пользователя
+        userRepository.getById(userId); // Проверка на наличие пользователя
+        User user = UserMapper.toUser(userDto);
         user.setId(userId);
         user = userRepository.update(user);
-        log.info("Обновленный пользователь: {}", user);
+        log.info("Запрос на обновление пользователя - {}", user.getId());
         return UserMapper.toUserDto(user);
     }
 

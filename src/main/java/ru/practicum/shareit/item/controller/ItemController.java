@@ -7,7 +7,10 @@ import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * TODO Sprint add-controllers.
@@ -37,17 +40,17 @@ public class ItemController {
         if (userId <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-       return ResponseEntity.status(204).body(itemService.create(itemDto, userId));
+       return ResponseEntity.status(201).body(itemService.create(itemDto, userId));
     }
 
     @PatchMapping("/{itemId}")
     public ResponseEntity<ItemDto> update(@RequestHeader(name="X-Sharer-User-Id") Long userId,
                                           @PathVariable Long itemId,
-                                          @RequestBody @Valid ItemDto itemDto) {
+                                          @RequestBody ItemDto itemDto) {
         if (userId <= 0 || itemId <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.ok(itemService.update(itemDto, userId));
+        return ResponseEntity.ok(itemService.update(itemDto, userId, itemId));
     }
 
     @GetMapping("/{itemId}")
@@ -60,8 +63,12 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ItemDto>> search(@RequestParam String text) {
-        //Напимсать паттерн для проверки строки
+    public ResponseEntity<List<ItemDto>> search(@RequestParam(required = false) String text) {
+        if (!text.isEmpty() && !Pattern.matches("^[\\sа-яА-Яa-zA-Z0-9]+$", text)) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } else if (text.isEmpty()) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
         return ResponseEntity.ok(itemService.search(text));
     }
 

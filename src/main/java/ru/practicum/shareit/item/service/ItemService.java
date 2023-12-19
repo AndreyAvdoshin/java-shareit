@@ -13,7 +13,7 @@ public interface ItemService {
 
     ItemDto getById(Long id, Long userID);
 
-    ItemDto update(ItemDto itemDto, Long userId);
+    ItemDto update(ItemDto itemDto, Long userId, Long itemId);
 
     void delete(Long id);
 

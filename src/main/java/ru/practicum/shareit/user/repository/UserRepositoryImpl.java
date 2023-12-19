@@ -46,7 +46,9 @@ public class UserRepositoryImpl implements UserRepository {
         if (replasedUser == null) {
             throw new NotFoundException("Пользователь по id - " + user.getId() + " не найден");
         }
+
         checkAlreadyRegisteredUser(user.getEmail(), user.getId());
+
         if (user.getName() != null) {
             replasedUser.setName(user.getName());
         }

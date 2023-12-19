@@ -28,7 +28,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserDto> create(@RequestBody @Valid UserDto userDto) {
-        return ResponseEntity.ok(userService.create(userDto));
+        return ResponseEntity.status(201).body(userService.create(userDto));
     }
 
     @GetMapping("/{userId}")
