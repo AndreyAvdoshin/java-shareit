@@ -139,7 +139,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void shouldGet403WhenUpdateItemWrongUser() throws Exception{
+    void shouldGet403WhenUpdateItemWrongUser() throws Exception {
         userDto = userController.create(userDto).getBody();
         userController.create(newUserDto).getBody();
         itemDto = itemController.create(userDto.getId(), itemDto).getBody();
@@ -155,7 +155,7 @@ class ItemControllerTest {
     }
 
     @Test
-    void shouldGetItemBySearchRequest() throws Exception{
+    void shouldGetItemBySearchRequest() throws Exception {
         userDto = userController.create(userDto).getBody();
         itemDto = itemController.create(userDto.getId(), itemDto).getBody();
 

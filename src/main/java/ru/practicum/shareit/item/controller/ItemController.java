@@ -25,7 +25,7 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ItemDto>> getAllByUserId(@RequestHeader(name="X-Sharer-User-Id")
+    public ResponseEntity<List<ItemDto>> getAllByUserId(@RequestHeader(name = "X-Sharer-User-Id")
                                                             Long userId) {
         if (userId <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -34,7 +34,7 @@ public class ItemController {
     }
 
     @PostMapping
-    public ResponseEntity<ItemDto> create(@RequestHeader(name="X-Sharer-User-Id") Long userId,
+    public ResponseEntity<ItemDto> create(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
                                           @RequestBody @Valid ItemDto itemDto) {
         if (userId <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -43,7 +43,7 @@ public class ItemController {
     }
 
     @PatchMapping("/{itemId}")
-    public ResponseEntity<ItemDto> update(@RequestHeader(name="X-Sharer-User-Id") Long userId,
+    public ResponseEntity<ItemDto> update(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
                                           @PathVariable Long itemId,
                                           @RequestBody ItemDto itemDto) {
         if (userId <= 0 || itemId <= 0) {
@@ -53,7 +53,7 @@ public class ItemController {
     }
 
     @GetMapping("/{itemId}")
-    public ResponseEntity<ItemDto> getItemById(@RequestHeader(name="X-Sharer-User-Id") Long userId,
+    public ResponseEntity<ItemDto> getItemById(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
                                                @PathVariable Long itemId) {
         if (userId <= 0 || itemId <= 0) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();

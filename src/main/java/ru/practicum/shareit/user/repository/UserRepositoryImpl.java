@@ -22,6 +22,7 @@ public class UserRepositoryImpl implements UserRepository {
         log.info("Получение всех пользователей");
         return new ArrayList<>(users.values());
     }
+
     @Override
     public User create(User user) {
         user.setId(++countId);
