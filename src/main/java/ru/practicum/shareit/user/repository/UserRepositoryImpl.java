@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.repository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.UniqueViolatedException;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.ArrayList;
@@ -20,13 +19,14 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public List<User> getAllUsers() {
+        log.info("Получение всех пользователей");
         return new ArrayList<>(users.values());
     }
     @Override
     public User create(User user) {
-        checkAlreadyRegisteredUser(user.getEmail(), user.getId());
         user.setId(++countId);
         users.put(user.getId(), user);
+        log.info("Создан пользователь - {}", user);
         return user;
     }
 
@@ -36,40 +36,20 @@ public class UserRepositoryImpl implements UserRepository {
         if (user == null) {
             throw new NotFoundException("Пользователь по id - " + userId + " не найден");
         }
-        log.info("Получен пользователь {}", user);
+        log.info("Получен пользователь по id - {}", userId);
         return user;
     }
 
     @Override
     public User update(User user) {
-        User replasedUser = users.get(user.getId());
-        if (replasedUser == null) {
-            throw new NotFoundException("Пользователь по id - " + user.getId() + " не найден");
-        }
-
-        checkAlreadyRegisteredUser(user.getEmail(), user.getId());
-
-        if (user.getName() != null) {
-            replasedUser.setName(user.getName());
-        }
-        if (user.getEmail() != null) {
-            replasedUser.setEmail(user.getEmail());
-        }
         log.info("Пользователь {} обновлен", user);
-        users.put(replasedUser.getId(), replasedUser);
-        return replasedUser;
+        users.put(user.getId(), user);
+        return user;
     }
 
     @Override
     public void delete(Long userId) {
+        log.info("Пользователь по id - {} удален", userId);
         users.remove(userId);
-    }
-
-    private void checkAlreadyRegisteredUser(String email, Long id) {
-         boolean exist = users.values().stream()
-                .anyMatch(it -> it.getEmail().equalsIgnoreCase(email) && !it.getId().equals(id));
-         if (exist) {
-             throw new UniqueViolatedException("Пользователь с email: " + email + " уже зарегистрирован");
-         }
     }
 }

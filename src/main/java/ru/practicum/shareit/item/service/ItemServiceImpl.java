@@ -37,7 +37,6 @@ public class ItemServiceImpl implements ItemService {
         checkUserIfExists(userId);
         Item item = ItemMapper.toItem(itemDto);
         item.setOwnerId(userId);
-        log.info("Создание вещи - {}", item);
         return ItemMapper.toItemDto(itemRepository.create(item));
     }
 
@@ -66,11 +65,6 @@ public class ItemServiceImpl implements ItemService {
         }
         updatedItem = itemRepository.update(updatedItem);
         return ItemMapper.toItemDto(updatedItem);
-    }
-
-    @Override
-    public void delete(Long id) {
-        itemRepository.delete(id);
     }
 
     @Override
