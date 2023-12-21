@@ -53,8 +53,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto getById(Long itemId, Long userId) {
         if (userId <= 0) {
             throw new IncorrectParameterException("userId");
-        }
-        else if (itemId <= 0) {
+        } else if (itemId <= 0) {
             throw new IncorrectParameterException("itemId");
         }
 
@@ -67,8 +66,7 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto update(ItemDto itemDto, Long userId, Long itemId) {
         if (userId <= 0) {
             throw new IncorrectParameterException("userId");
-        }
-        else if (itemId <= 0) {
+        } else if (itemId <= 0) {
             throw new IncorrectParameterException("itemId");
         }
 
