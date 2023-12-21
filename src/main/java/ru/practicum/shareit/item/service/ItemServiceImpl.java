@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.IncorrectParameterException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -9,7 +10,9 @@ import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -26,6 +29,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getAllByUserId(Long userId) {
+        if (userId <= 0) {
+            throw new IncorrectParameterException("userId");
+        }
         checkUserIfExists(userId);
         return itemRepository.getAllByUserId(userId).stream()
                 .map(ItemMapper::toItemDto)
@@ -34,6 +40,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto create(ItemDto itemDto, Long userId) {
+        if (userId <= 0) {
+            throw new IncorrectParameterException("userId");
+        }
         checkUserIfExists(userId);
         Item item = ItemMapper.toItem(itemDto);
         item.setOwnerId(userId);
@@ -41,16 +50,30 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto getById(Long id, Long userId) {
+    public ItemDto getById(Long itemId, Long userId) {
+        if (userId <= 0) {
+            throw new IncorrectParameterException("userId");
+        }
+        else if (itemId <= 0) {
+            throw new IncorrectParameterException("itemId");
+        }
+
         checkUserIfExists(userId);
-        Item item = itemRepository.getById(id);
+        Item item = itemRepository.getById(itemId);
         return ItemMapper.toItemDto(item);
     }
 
     @Override
-    public ItemDto update(ItemDto itemDto, Long userId, Long id) {
+    public ItemDto update(ItemDto itemDto, Long userId, Long itemId) {
+        if (userId <= 0) {
+            throw new IncorrectParameterException("userId");
+        }
+        else if (itemId <= 0) {
+            throw new IncorrectParameterException("itemId");
+        }
+
         checkUserIfExists(userId);
-        Item updatedItem = itemRepository.getById(id);
+        Item updatedItem = itemRepository.getById(itemId);
         if (!updatedItem.getOwnerId().equals(userId)) {
             throw new NotOwnerException("Запрещено редактировать не свою вещь");
         }
@@ -69,6 +92,11 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
+        if (!text.isEmpty() && !Pattern.matches("^[\\sа-яА-Яa-zA-Z0-9]+$", text)) {
+            throw new IncorrectParameterException("text");
+        } else if (text.isEmpty()) {
+            return new ArrayList<>();
+        }
         return itemRepository.search(text.toLowerCase()).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());

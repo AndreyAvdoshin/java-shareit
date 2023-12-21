@@ -66,9 +66,9 @@ class ItemControllerTest {
 
     @Test
     void getAllByUserId() throws Exception {
-        userDto = userController.create(userDto).getBody();
-        itemController.create(userDto.getId(), itemDto).getBody();
-        itemController.create(userDto.getId(), newItemDto).getBody();
+        userDto = userController.create(userDto);
+        itemController.create(userDto.getId(), itemDto);
+        itemController.create(userDto.getId(), newItemDto);
 
         mockMvc.perform(get("/items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -88,7 +88,7 @@ class ItemControllerTest {
 
     @Test
     void shouldCreateItemAndGet201() throws Exception {
-        userDto = userController.create(userDto).getBody();
+        userDto = userController.create(userDto);
 
         mockMvc.perform(post("/items")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,8 +120,8 @@ class ItemControllerTest {
 
     @Test
     void shouldUpdateItemAndGet200() throws Exception {
-        userDto = userController.create(userDto).getBody();
-        itemDto = itemController.create(userDto.getId(), itemDto).getBody();
+        userDto = userController.create(userDto);
+        itemDto = itemController.create(userDto.getId(), itemDto);
 
         itemDto.setName("Дрель+");
         itemDto.setDescription("Аккумуляторная дрель");
@@ -140,9 +140,9 @@ class ItemControllerTest {
 
     @Test
     void shouldGet403WhenUpdateItemWrongUser() throws Exception {
-        userDto = userController.create(userDto).getBody();
-        userController.create(newUserDto).getBody();
-        itemDto = itemController.create(userDto.getId(), itemDto).getBody();
+        userDto = userController.create(userDto);
+        userController.create(newUserDto);
+        itemDto = itemController.create(userDto.getId(), itemDto);
 
         itemDto.setName("Дрель+");
         itemDto.setDescription("Аккумуляторная дрель");
@@ -156,8 +156,8 @@ class ItemControllerTest {
 
     @Test
     void shouldGetItemBySearchRequest() throws Exception {
-        userDto = userController.create(userDto).getBody();
-        itemDto = itemController.create(userDto.getId(), itemDto).getBody();
+        userDto = userController.create(userDto);
+        itemDto = itemController.create(userDto.getId(), itemDto);
 
         mockMvc.perform(get("/items/search?text=дРелЬ")
                         .contentType(MediaType.APPLICATION_JSON)

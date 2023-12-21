@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.exception.IncorrectParameterException;
 import ru.practicum.shareit.exception.UniqueViolatedException;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -40,12 +41,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getById(Long userId) {
+        if (userId <= 0) {
+            throw new IncorrectParameterException("userId");
+        }
         User user = userRepository.getById(userId);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
+        if (userId <= 0) {
+            throw new IncorrectParameterException("userId");
+        }
+
         User user = UserMapper.toUser(userDto);
         User replasedUser = userRepository.getById(userId);
         boolean exists = checkAlreadyRegisteredUser(user.getEmail());

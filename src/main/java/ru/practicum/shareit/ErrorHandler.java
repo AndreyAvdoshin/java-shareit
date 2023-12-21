@@ -5,6 +5,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.shareit.exception.IncorrectParameterException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.exception.UniqueViolatedException;
@@ -36,6 +37,14 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> notOwnerException(final RuntimeException e) {
         return Map.of("error", e.getMessage());
+    }
+
+    @ExceptionHandler(IncorrectParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleIncorrectParameterException(final IncorrectParameterException e) {
+        return Map.of("error",
+                String.format("Ошибка с полем \"%s\".", e.getParameter())
+        );
     }
 
     @ExceptionHandler

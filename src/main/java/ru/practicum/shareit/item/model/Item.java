@@ -13,11 +13,8 @@ import javax.validation.constraints.NotNull;
 @Builder
 public class Item {
     private Long id;
-    @NotBlank
     private String name;
-    @NotBlank
     private String description;
-    @NotNull
     private boolean available;
     private Long ownerId;
     private Long requestId;

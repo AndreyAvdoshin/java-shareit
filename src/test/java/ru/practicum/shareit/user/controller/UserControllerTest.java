@@ -48,8 +48,8 @@ class UserControllerTest {
 
     @Test
     void getAllUsers() throws Exception {
-        userController.create(userDto).getBody();
-        userController.create(newUserDto).getBody();
+        userController.create(userDto);
+        userController.create(newUserDto);
 
         mockMvc.perform(get("/users")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -77,7 +77,7 @@ class UserControllerTest {
 
     @Test
     void shouldGet409WhenCreateUserWithSameEmail() throws Exception {
-        userDto = userController.create(userDto).getBody();
+        userDto = userController.create(userDto);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -87,7 +87,7 @@ class UserControllerTest {
 
     @Test
     void shouldGetUserByIdAndGet200() throws Exception {
-        userDto = userController.create(userDto).getBody();
+        userDto = userController.create(userDto);
 
         mockMvc.perform(get("/users/1")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -99,7 +99,7 @@ class UserControllerTest {
 
     @Test
     void shouldUpdateUserAndGet200() throws Exception {
-        userDto = userController.create(userDto).getBody();
+        userDto = userController.create(userDto);
 
         userDto.setName("user00");
         userDto.setEmail("user00@user.com");
@@ -115,7 +115,7 @@ class UserControllerTest {
 
     @Test
     void shouldDeleteUserAndGet200() throws Exception {
-        userDto = userController.create(userDto).getBody();
+        userDto = userController.create(userDto);
         userController.delete(userDto.getId());
 
         mockMvc.perform(get("/users")
