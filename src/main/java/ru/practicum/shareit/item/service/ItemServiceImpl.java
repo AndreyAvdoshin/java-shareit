@@ -3,11 +3,14 @@ package ru.practicum.shareit.item.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.IncorrectParameterException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.ArrayList;
@@ -20,11 +23,11 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
-    public ItemServiceImpl(ItemRepository itemRepository, UserService userService) {
+    public ItemServiceImpl(ItemRepository itemRepository, UserRepository userRepository) {
         this.itemRepository = itemRepository;
-        this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -33,7 +36,7 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectParameterException("userId");
         }
         checkUserIfExists(userId);
-        return itemRepository.getAllByUserId(userId).stream()
+        return itemRepository.findByOwnerId(userId).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
@@ -45,8 +48,8 @@ public class ItemServiceImpl implements ItemService {
         }
         checkUserIfExists(userId);
         Item item = ItemMapper.toItem(itemDto);
-        item.setOwnerId(userId);
-        return ItemMapper.toItemDto(itemRepository.create(item));
+        item.setOwner(userRepository.findById(userId).get());
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
@@ -58,7 +61,7 @@ public class ItemServiceImpl implements ItemService {
         }
 
         checkUserIfExists(userId);
-        Item item = itemRepository.getById(itemId);
+        Item item = returnItemIfExists(itemId);
         return ItemMapper.toItemDto(item);
     }
 
@@ -71,8 +74,8 @@ public class ItemServiceImpl implements ItemService {
         }
 
         checkUserIfExists(userId);
-        Item updatedItem = itemRepository.getById(itemId);
-        if (!updatedItem.getOwnerId().equals(userId)) {
+        Item updatedItem = returnItemIfExists(itemId);
+        if (!updatedItem.getOwner().getId().equals(userId)) {
             throw new NotOwnerException("Запрещено редактировать не свою вещь");
         }
         if (itemDto.getName() != null) {
@@ -84,7 +87,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             updatedItem.setAvailable(itemDto.getAvailable());
         }
-        updatedItem = itemRepository.update(updatedItem);
+        updatedItem = itemRepository.save(updatedItem);
         return ItemMapper.toItemDto(updatedItem);
     }
 
@@ -95,12 +98,21 @@ public class ItemServiceImpl implements ItemService {
         } else if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        return itemRepository.search(text.toLowerCase()).stream()
-                .map(ItemMapper::toItemDto)
-                .collect(Collectors.toList());
+        return null;
+//        return itemRepository.search(text.toLowerCase()).stream()
+//                .map(ItemMapper::toItemDto)
+//                .collect(Collectors.toList());
+    }
+
+    private Item returnItemIfExists(Long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException("Вещь по id - " + itemId + " не найдена"));
     }
 
     private void checkUserIfExists(Long userId) {
-        userService.getById(userId);
+        boolean exists = userRepository.existsById(userId);
+        if (!exists) {
+            throw new NotFoundException("Пользователь по id - " + userId + " не найден");
+        }
     }
 }
