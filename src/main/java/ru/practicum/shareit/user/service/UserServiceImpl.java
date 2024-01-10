@@ -2,7 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.IncorrectParameterException;
+import ru.practicum.shareit.utils.Validation;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.UniqueViolatedException;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -33,32 +33,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = UserMapper.toUser(userDto);
-//        if (checkAlreadyRegisteredUser(user.getEmail())) {
-//            throw new UniqueViolatedException("Пользователь с email: " + user.getEmail() + " уже зарегистрирован");
-//        }
         user = userRepository.save(user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto getById(Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        }
+        Validation.checkPositiveId(User.class, userId);
+
         User user = returnUserIfExists(userId);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        }
+        Validation.checkPositiveId(User.class, userId);
 
         User user = UserMapper.toUser(userDto);
         User replasedUser = returnUserIfExists(userId);
 
-        //boolean exists = checkAlreadyRegisteredUser(user.getEmail());
         if (user.getEmail() != null) {
             if (checkAlreadyRegisteredUser(user.getEmail()) &&
                     !user.getEmail().equalsIgnoreCase(replasedUser.getEmail())) {
@@ -78,9 +71,18 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
     }
 
-    private User returnUserIfExists(Long userId) {
+    @Override
+    public User returnUserIfExists(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь по id - " + userId + " не найден"));
+    }
+
+    @Override
+    public void checkUserIfExists(Long userId) {
+        boolean exists = userRepository.existsById(userId);
+        if (!exists) {
+            throw new NotFoundException("Пользователь по id - " + userId + " не найден");
+        }
     }
 
     private boolean checkAlreadyRegisteredUser(String email) {

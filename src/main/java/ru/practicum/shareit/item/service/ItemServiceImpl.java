@@ -2,19 +2,30 @@ package ru.practicum.shareit.item.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.utils.Validation;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingMapper;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.exception.IncorrectParameterException;
+import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.NotOwnerException;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemOutputDto;
+import ru.practicum.shareit.item.model.Comment;
+import ru.practicum.shareit.item.model.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -23,57 +34,118 @@ import java.util.stream.Collectors;
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
-    public ItemServiceImpl(ItemRepository itemRepository, UserRepository userRepository) {
+    public ItemServiceImpl(ItemRepository itemRepository, UserService userService,
+                           BookingRepository bookingRepository, CommentRepository commentRepository) {
         this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
+        this.bookingRepository = bookingRepository;
+        this.commentRepository = commentRepository;
     }
 
     @Override
-    public List<ItemDto> getAllByUserId(Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        }
-        checkUserIfExists(userId);
-        return itemRepository.findByOwnerId(userId).stream()
-                .map(ItemMapper::toItemDto)
+    public List<ItemOutputDto> getAllByUserId(Long userId) {
+        Validation.checkPositiveId(User.class, userId);
+
+        userService.checkUserIfExists(userId);
+
+        Map<Long, Item> items = itemRepository.findByOwnerId(userId)
+                .stream()
+                .collect(Collectors.toMap(Item::getId, Function.identity()));
+
+        List<Booking> bookings = bookingRepository.findByItemIds(items.keySet());
+
+        log.info("Получение списка вещей пользователя по id - {} : {}", userId, items.values());
+
+        return items.values().stream()
+                .map(item -> {
+                    List<Booking> itemBookings = bookings.stream()
+                            .filter(booking -> booking.getItem().getId().equals(item.getId()))
+                            .collect(Collectors.toList());
+
+                    Booking lastBooking = itemBookings.stream()
+                            .filter(booking -> booking.getStatus().equals(Status.APPROVED) &&
+                                    booking.getStart().isBefore(LocalDateTime.now()))
+                            .max(Comparator.comparing(Booking::getStart))
+                            .orElse(null);
+
+                    Booking nextBooking = itemBookings.stream()
+                            .filter(booking -> booking.getStatus().equals(Status.APPROVED) &&
+                                    booking.getStart().isAfter(LocalDateTime.now()))
+                            .min(Comparator.comparing(Booking::getStart))
+                            .orElse(null);
+
+                    ItemOutputDto itemOutputDto = new ItemOutputDto(item,
+                            lastBooking == null ? null : BookingMapper.toBookingShortDto(lastBooking),
+                            nextBooking == null ? null : BookingMapper.toBookingShortDto(nextBooking));
+
+                    itemOutputDto.setComments(CommentMapper.toCommentsDto(
+                            commentRepository.findCommentsByItemIdWithUserAndItem(item.getId())));
+
+                    return itemOutputDto;
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
     public ItemDto create(ItemDto itemDto, Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        }
-        checkUserIfExists(userId);
+        Validation.checkPositiveId(User.class, userId);
+
         Item item = ItemMapper.toItem(itemDto);
-        item.setOwner(userRepository.findById(userId).get());
+        item.setOwner(userService.returnUserIfExists(userId));
+
+        log.info("Создание вещи - {}", item);
         return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
     public ItemDto getById(Long itemId, Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        } else if (itemId <= 0) {
-            throw new IncorrectParameterException("itemId");
+        Validation.checkPositiveId(User.class, userId);
+        Validation.checkPositiveId(Item.class, itemId);
+
+        userService.checkUserIfExists(userId);
+        Item item = returnItemIfExists(itemId);
+        ItemOutputDto itemOutputDto;
+
+        if (item.getOwner().getId().equals(userId)) {
+            List<Booking> bookings = bookingRepository.findByItemIds(Set.of(item.getId()));
+
+            Booking lastBooking = bookings.stream()
+                    .filter(booking -> booking.getStatus().equals(Status.APPROVED) &&
+                            booking.getStart().isBefore(LocalDateTime.now()))
+                    .max(Comparator.comparing(Booking::getStart))
+                    .orElse(null);
+
+            Booking nextBooking = bookings.stream()
+                    .filter(booking -> booking.getStatus().equals(Status.APPROVED) &&
+                            booking.getStart().isAfter(LocalDateTime.now()))
+                    .min(Comparator.comparing(Booking::getStart))
+                    .orElse(null);
+
+            itemOutputDto = new ItemOutputDto(item,
+                    lastBooking == null ? null : BookingMapper.toBookingShortDto(lastBooking),
+                    nextBooking == null ? null : BookingMapper.toBookingShortDto(nextBooking));
+
+        } else {
+            itemOutputDto = new ItemOutputDto(item, null, null);
         }
 
-        checkUserIfExists(userId);
-        Item item = returnItemIfExists(itemId);
-        return ItemMapper.toItemDto(item);
+        itemOutputDto.setComments(CommentMapper.toCommentsDto(
+                commentRepository.findCommentsByItemIdWithUserAndItem(itemId)));
+
+        log.info("Получение вещи пользователя по id - {} : {}", userId, itemOutputDto);
+        return itemOutputDto;
     }
 
     @Override
     public ItemDto update(ItemDto itemDto, Long userId, Long itemId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        } else if (itemId <= 0) {
-            throw new IncorrectParameterException("itemId");
-        }
+        Validation.checkPositiveId(User.class, userId);
+        Validation.checkPositiveId(Item.class, itemId);
 
-        checkUserIfExists(userId);
+        userService.checkUserIfExists(userId);
         Item updatedItem = returnItemIfExists(itemId);
         if (!updatedItem.getOwner().getId().equals(userId)) {
             throw new NotOwnerException("Запрещено редактировать не свою вещь");
@@ -87,7 +159,9 @@ public class ItemServiceImpl implements ItemService {
         if (itemDto.getAvailable() != null) {
             updatedItem.setAvailable(itemDto.getAvailable());
         }
+
         updatedItem = itemRepository.save(updatedItem);
+        log.info("Обновление вещи по id - {} пользователем - {} : {}", itemId, userId, updatedItem);
         return ItemMapper.toItemDto(updatedItem);
     }
 
@@ -98,21 +172,42 @@ public class ItemServiceImpl implements ItemService {
         } else if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        return null;
-//        return itemRepository.search(text.toLowerCase()).stream()
-//                .map(ItemMapper::toItemDto)
-//                .collect(Collectors.toList());
+
+        log.info("Поиск вещи по строке - {}", text);
+        return itemRepository.search(text).stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
     }
 
-    private Item returnItemIfExists(Long itemId) {
+    @Override
+    public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
+        Validation.checkPositiveId(User.class, userId);
+        Validation.checkPositiveId(Item.class, itemId);
+
+        User author = userService.returnUserIfExists(userId);
+        Item item = returnItemIfExists(itemId);
+
+        Booking booking = bookingRepository.findFirstByItemIdAndBookerIdAndStatusAndEndIsBeforeOrderByEndDesc(itemId,
+                userId,
+                Status.APPROVED,
+                LocalDateTime.now());
+
+        if (booking == null) {
+            throw new NotAvailableException("Бронирование вещи по id - " + itemId + " пользователем - " +
+                    userId + " не найдено");
+        }
+
+        Comment comment = CommentMapper.toComment(commentDto);
+        comment.setItem(item);
+        comment.setAuthor(author);
+
+        log.info("Сооздание комментария - {}", comment);
+        return CommentMapper.toCommentDto(commentRepository.save(comment));
+    }
+
+    @Override
+    public Item returnItemIfExists(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь по id - " + itemId + " не найдена"));
-    }
-
-    private void checkUserIfExists(Long userId) {
-        boolean exists = userRepository.existsById(userId);
-        if (!exists) {
-            throw new NotFoundException("Пользователь по id - " + userId + " не найден");
-        }
     }
 }
