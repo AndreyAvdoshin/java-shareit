@@ -35,8 +35,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByItemOwnerIdAndStatusOrderByStartDesc(Long userId, Status status);
 
-    @Query("SELECT b FROM Booking b LEFT JOIN FETCH b.item WHERE b.item.id IN :itemIds")
-    List<Booking> findByItemIds(@Param("itemIds") Set<Long> itemIds);
+    List<Booking> findAllByItemOwnerId(Long ownerId);
 
     Booking findFirstByItemIdAndBookerIdAndStatusAndEndIsBeforeOrderByEndDesc(Long itemId, Long ownerId, Status status,
                                                                              LocalDateTime date);

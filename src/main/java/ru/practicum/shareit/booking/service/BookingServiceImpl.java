@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class bookingServiceImpl implements BookingService {
+public class BookingServiceImpl implements BookingService {
 
     private final BookingRepository bookingRepository;
     private final UserService userService;
     private final ItemService itemService;
 
-    public bookingServiceImpl(BookingRepository bookingRepository, UserService userService, ItemService itemService) {
+    public BookingServiceImpl(BookingRepository bookingRepository, UserService userService, ItemService itemService) {
         this.bookingRepository = bookingRepository;
         this.userService = userService;
         this.itemService = itemService;
@@ -135,7 +135,7 @@ public class bookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
                 break;
             default:
-                throw new UnsupportedStatusException("Unknown state: " + state);
+                throw new UnsupportedStatusException(state);
         }
 
         log.info("Получение списка бронирований пользователя по id - {} со статусом - {} : {}",
@@ -178,7 +178,7 @@ public class bookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
                 break;
             default:
-                throw new UnsupportedStatusException("Unknown state: " + state);
+                throw new UnsupportedStatusException(state);
         }
 
         log.info("Получение списка бронирований владельца по id - {} со статусом - {} : {}",

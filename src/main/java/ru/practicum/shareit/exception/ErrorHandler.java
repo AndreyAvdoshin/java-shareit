@@ -1,69 +1,78 @@
 package ru.practicum.shareit.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
-
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleValidation(final MethodArgumentNotValidException e) {
-        return Map.of("Ошибка валидации", e.getMessage());
+    public ErrorResponse handleValidation(final MethodArgumentNotValidException e) {
+        log.error("Вызвана ошибка валидации - {}", e.getMessage());
+        return new ErrorResponse("Ошибка валидации", e.getMessage());
     }
 
     @ExceptionHandler(UniqueViolatedException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Map<String, String> uniqueViolatedResponse(UniqueViolatedException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse uniqueViolatedResponse(UniqueViolatedException e) {
+        log.error("Вызвана ошибка уникальности - {}", e.getMessage());
+        return new ErrorResponse("error", e.getMessage());
     }
 
     @ExceptionHandler(NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Map<String, String> notFoundException(final RuntimeException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse notFoundException(final RuntimeException e) {
+        log.error("Вызвана ошибка Значение не найдено - {}", e.getMessage());
+        return new ErrorResponse("error", e.getMessage());
     }
 
     @ExceptionHandler(NotOwnerException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Map<String, String> notOwnerException(final RuntimeException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse notOwnerException(final RuntimeException e) {
+        log.error("Вызвана ошибка запрета просмотра вещи - {}", e.getMessage());
+        return new ErrorResponse("error", e.getMessage());
     }
 
     @ExceptionHandler(IncorrectParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleIncorrectParameterException(final IncorrectParameterException e) {
-        return Map.of("error",
+    public ErrorResponse handleIncorrectParameterException(final IncorrectParameterException e) {
+        log.error("Вызвана ошибка некорректного параметра - {}", e.getParameter());
+        return new ErrorResponse("error",
                 String.format("Ошибка с полем \"%s\".", e.getParameter())
         );
     }
 
     @ExceptionHandler(NotAvailableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> notAvailableException(final RuntimeException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse notAvailableException(final RuntimeException e) {
+        log.error("Вызвана ошибка недоступности - {}", e.getMessage());
+        return new ErrorResponse("error", e.getMessage());
     }
 
     @ExceptionHandler(UnsupportedStatusException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> unsupportedStatusException(final RuntimeException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse unsupportedStatusException(final RuntimeException e) {
+        log.error("Вызвана ошибка неккорректного статуса - {}", e.getMessage());
+        return new ErrorResponse("Unknown state: UNSUPPORTED_STATUS", e.getMessage());
     }
 
     @ExceptionHandler(BookingSelfItemException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> bookingSelfItemException(final RuntimeException e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse bookingSelfItemException(final RuntimeException e) {
+        log.error("Вызвана ошибка бронирования собственной вещи - {}", e.getMessage());
+        return new ErrorResponse("error", e.getMessage());
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Map<String, String> handleServerError(final Throwable e) {
-        return Map.of("error", e.getMessage());
+    public ErrorResponse handleServerError(final Throwable e) {
+        log.error("Вызвана непредвиденная ошибка - {}", e.getMessage());
+        return new ErrorResponse("error", e.getMessage());
     }
 }

@@ -52,15 +52,13 @@ public class ItemServiceImpl implements ItemService {
 
         userService.checkUserIfExists(userId);
 
-        Map<Long, Item> items = itemRepository.findByOwnerId(userId)
-                .stream()
-                .collect(Collectors.toMap(Item::getId, Function.identity()));
+        List<Item> items = itemRepository.findByOwnerIdOrderById(userId);
 
-        List<Booking> bookings = bookingRepository.findByItemIds(items.keySet());
+        List<Booking> bookings = bookingRepository.findAllByItemOwnerId(userId);
 
-        log.info("Получение списка вещей пользователя по id - {} : {}", userId, items.values());
+        log.info("Получение списка вещей пользователя по id - {} : {}", userId, items);
 
-        return items.values().stream()
+        return items.stream()
                 .map(item -> {
                     List<Booking> itemBookings = bookings.stream()
                             .filter(booking -> booking.getItem().getId().equals(item.getId()))
@@ -111,7 +109,7 @@ public class ItemServiceImpl implements ItemService {
         ItemOutputDto itemOutputDto;
 
         if (item.getOwner().getId().equals(userId)) {
-            List<Booking> bookings = bookingRepository.findByItemIds(Set.of(item.getId()));
+            List<Booking> bookings = bookingRepository.findAllByItemOwnerId(userId);
 
             Booking lastBooking = bookings.stream()
                     .filter(booking -> booking.getStatus().equals(Status.APPROVED) &&
