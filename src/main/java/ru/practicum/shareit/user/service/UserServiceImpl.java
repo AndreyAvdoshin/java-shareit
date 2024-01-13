@@ -2,7 +2,8 @@ package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.IncorrectParameterException;
+import ru.practicum.shareit.utils.Validation;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.UniqueViolatedException;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -24,7 +25,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> getAllUsers() {
-        return userRepository.getAllUsers().stream()
+        return userRepository.findAll().stream()
                 .map(UserMapper::toUserDto)
                 .collect(Collectors.toList());
     }
@@ -32,31 +33,25 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = UserMapper.toUser(userDto);
-        if (checkAlreadyRegisteredUser(user.getEmail())) {
-            throw new UniqueViolatedException("Пользователь с email: " + user.getEmail() + " уже зарегистрирован");
-        }
-        user = userRepository.create(user);
+        user = userRepository.save(user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto getById(Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        }
-        User user = userRepository.getById(userId);
+        Validation.checkPositiveId(User.class, userId);
+
+        User user = returnUserIfExists(userId);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
-        if (userId <= 0) {
-            throw new IncorrectParameterException("userId");
-        }
+        Validation.checkPositiveId(User.class, userId);
 
         User user = UserMapper.toUser(userDto);
-        User replasedUser = userRepository.getById(userId);
-        boolean exists = checkAlreadyRegisteredUser(user.getEmail());
+        User replasedUser = returnUserIfExists(userId);
+
         if (user.getEmail() != null) {
             if (checkAlreadyRegisteredUser(user.getEmail()) &&
                     !user.getEmail().equalsIgnoreCase(replasedUser.getEmail())) {
@@ -67,13 +62,27 @@ public class UserServiceImpl implements UserService {
         if (user.getName() != null) {
             replasedUser.setName(user.getName());
         }
-        user = userRepository.update(replasedUser);
+        user = userRepository.save(replasedUser);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public void delete(Long userId) {
-        userRepository.delete(userId);
+        userRepository.deleteById(userId);
+    }
+
+    @Override
+    public User returnUserIfExists(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь по id - " + userId + " не найден"));
+    }
+
+    @Override
+    public void checkUserIfExists(Long userId) {
+        boolean exists = userRepository.existsById(userId);
+        if (!exists) {
+            throw new NotFoundException("Пользователь по id - " + userId + " не найден");
+        }
     }
 
     private boolean checkAlreadyRegisteredUser(String email) {
