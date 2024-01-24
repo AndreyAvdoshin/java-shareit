@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemOutputDto;
+import ru.practicum.shareit.item.dto.ItemWithRequestDto;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.item.dto.ItemDto;
 
@@ -27,17 +28,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemOutputDto> getAllByUserId(@RequestHeader(name = "X-Sharer-User-Id") Long userId) {
-        log.info("Запрос всех вещей пользователя по id - {}", userId);
-        return itemService.getAllByUserId(userId);
+    public List<ItemOutputDto> getAllByUserId(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
+                                              @RequestParam(defaultValue = "0", required = false) int from,
+                                              @RequestParam(defaultValue = "10", required = false) int size) {
+        log.info("Запрос всех вещей пользователя по id - {}, со страницы - {}, количеством - {}", userId, from, size);
+        return itemService.getAllByUserId(userId, from, size);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ItemDto create(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
-                          @RequestBody @Valid ItemDto itemDto) {
-        log.info("Запрос создания вещи - {}", itemDto);
-        return itemService.create(itemDto, userId);
+    public ItemWithRequestDto create(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
+                                     @RequestBody @Valid ItemWithRequestDto itemWithRequestDto) {
+        log.info("Запрос создания вещи - {}", itemWithRequestDto);
+        return itemService.create(itemWithRequestDto, userId);
     }
 
     @PatchMapping("/{itemId}")
@@ -56,9 +59,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public List<ItemDto> search(@RequestParam(required = false) String text) {
-        log.info("Запрос поиска вещи по строке - {}", text);
-        return itemService.search(text);
+    public List<ItemDto> search(@RequestParam(required = false) String text,
+                                @RequestParam(defaultValue = "0", required = false) int from,
+                                @RequestParam(defaultValue = "10", required = false) int size) {
+        log.info("Запрос поиска вещи по строке - {} со страницы - {} количеством - {}", text, from, size);
+        return itemService.search(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

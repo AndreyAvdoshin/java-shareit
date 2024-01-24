@@ -51,18 +51,24 @@ public class BookingController {
 
     @GetMapping
     public List<BookingOutputDto> getBookingsByBookerId(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
-                                                      @RequestParam(name = "state",
-                                                              defaultValue = "ALL") String state) {
-        log.info("Запрос всех бронирований по пользователю id - {} со статусом - {}", userId, state);
-        return bookingService.getBookingsByBookerId(userId, state);
+                                                        @RequestParam(name = "state",
+                                                              defaultValue = "ALL") String state,
+                                                        @RequestParam(defaultValue = "0", required = false) int from,
+                                                        @RequestParam(defaultValue = "10", required = false) int size) {
+        log.info("Запрос всех бронирований по пользователю id - {} со статусом - {} со страницы - {} количеством - {}",
+                userId, state, from, size);
+        return bookingService.getBookingsByBookerId(userId, state, from, size);
     }
 
     @GetMapping
     @RequestMapping("/owner")
     public List<BookingOutputDto> getBookingsByUserId(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
-                                                        @RequestParam(name = "state",
-                                                                defaultValue = "ALL") String state) {
-        log.info("Запрос всех бронирований по владельцу id - {} со статусом - {}", userId, state);
-        return bookingService.getBookingsByUserId(userId, state);
+                                                      @RequestParam(name = "state",
+                                                                defaultValue = "ALL") String state,
+                                                      @RequestParam(defaultValue = "0", required = false) int from,
+                                                      @RequestParam(defaultValue = "10", required = false) int size) {
+        log.info("Запрос всех бронирований по владельцу id - {} со статусом - {} со страницы - {} количеством - {}",
+                userId, state, from, size);
+        return bookingService.getBookingsByUserId(userId, state, from, size);
     }
 }
