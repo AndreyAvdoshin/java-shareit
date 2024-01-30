@@ -52,7 +52,7 @@ class ItemControllerTest {
     private CommentDto commentDto;
 
     @BeforeEach
-    void setUp() {
+    void startUp() {
         user = User.builder()
                 .id(1L)
                 .email("user@email.ru")

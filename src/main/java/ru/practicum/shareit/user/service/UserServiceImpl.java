@@ -85,8 +85,13 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+//    private boolean checkAlreadyRegisteredUser(String email) {
+//        return getAllUsers().stream()
+//                .anyMatch(it -> it.getEmail().equalsIgnoreCase(email));
+//    }
+
     private boolean checkAlreadyRegisteredUser(String email) {
-        return getAllUsers().stream()
-                .anyMatch(it -> it.getEmail().equalsIgnoreCase(email));
+        User user = userRepository.findByEmail(email);
+        return user != null;
     }
 }

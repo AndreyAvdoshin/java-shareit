@@ -134,16 +134,11 @@ class ItemServiceTest {
                 .text("Отличная вещь!")
                 .build();
 
-        commentDto = CommentDto.builder()
-                .id(1L)
-                .text("Отличная вещь!")
-                .authorName("User")
-                .created(LocalDateTime.now()).build();
-
+        commentDto = CommentMapper.toCommentDto(comment);
         itemOutputDto = new ItemOutputDto(item, BookingMapper.toBookingShortDto(booking),
                 BookingMapper.toBookingShortDto(otherBooking));
-        itemOutputDto.setComments(CommentMapper.toCommentsDto(List.of(comment)));
 
+        itemOutputDto.setComments(CommentMapper.toCommentsDto(List.of(comment)));
         itemWithRequestDto = new ItemWithRequestDto(item, itemRequest.getId());
     }
 
@@ -234,7 +229,37 @@ class ItemServiceTest {
                 commentDto);
 
         assertEquals(commentOut, CommentMapper.toCommentDto(comment));
+    }
 
+    @Test
+    void shouldGetAllItemsWithRequests() {
+        when(itemRepository.getAllWithRequests()).thenReturn(List.of(item));
+
+        List<Item> items = itemService.getAllWithRequests();
+
+        assertEquals(items, List.of(item));
+        assertEquals(items.get(0).getRequest(), itemRequest);
+
+        verify(itemRepository, times(1)).getAllWithRequests();
+    }
+
+    @Test
+    void shouldGelAllItemsByRequestId() {
+        when(itemRepository.getAllByRequestId(anyLong())).thenReturn(List.of(item));
+
+        List<ItemWithRequestDto> items = itemService.getAllByRequestId(itemRequest.getId());
+
+        assertEquals(items, List.of(itemWithRequestDto));
+        verify(itemRepository, times(1)).getAllByRequestId(anyLong());
+    }
+
+    @Test
+    void shouldGetFirstItemByOwnerId() {
+        when(itemRepository.findFirstByOwnerId(anyLong())).thenReturn(item);
+
+        Item itemOut = itemService.getFirstByUserId(owner.getId());
+
+        verify(itemRepository, times(1)).findFirstByOwnerId(anyLong());
     }
 
 }
