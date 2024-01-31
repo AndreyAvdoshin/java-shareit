@@ -20,14 +20,4 @@ public class Validation {
             }
         }
     }
-
-    public static void checkPositivePagination(int from, int size) {
-        if (from == 0 && size == 0) {
-            throw new IncorrectParameterException("from, size");
-        } else if (from < 0) {
-            throw new IncorrectParameterException("from");
-        } else if (size <= 0) {
-            throw new IncorrectParameterException("size");
-        }
-    }
 }

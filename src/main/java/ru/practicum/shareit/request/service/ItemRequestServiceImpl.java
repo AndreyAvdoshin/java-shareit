@@ -82,7 +82,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public List<ItemRequestDto> getAllRequests(int from, int size, Long userId) {
         Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositivePagination(from, size);
+        //Validation.checkPositivePagination(from, size);
         userService.checkUserIfExists(userId);
 
         PageRequest pageRequest = PageRequest.of(from / size, size);

@@ -54,7 +54,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<ItemOutputDto> getAllByUserId(Long userId, int from, int size) {
         Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositivePagination(from, size);
 
         userService.checkUserIfExists(userId);
         PageRequest pageRequest = PageRequest.of(from / size, size);
@@ -183,7 +182,6 @@ public class ItemServiceImpl implements ItemService {
         } else if (text.isEmpty()) {
             return new ArrayList<>();
         }
-        Validation.checkPositivePagination(from / size, size);
 
         PageRequest pageRequest = PageRequest.of(from, size);
 
