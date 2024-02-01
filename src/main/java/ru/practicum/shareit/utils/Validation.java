@@ -3,6 +3,7 @@ package ru.practicum.shareit.utils;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exception.IncorrectParameterException;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 public class Validation {
@@ -14,6 +15,8 @@ public class Validation {
                 throw new IncorrectParameterException("itemId");
             } else if (inputClass.equals(Booking.class)) {
                 throw new IncorrectParameterException("bookingId");
+            } else if (inputClass.equals(ItemRequest.class)) {
+                throw new IncorrectParameterException("requestId");
             }
         }
     }

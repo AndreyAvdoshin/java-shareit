@@ -1,7 +1,9 @@
 package ru.practicum.shareit.booking.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.model.State;
 import ru.practicum.shareit.utils.Validation;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.model.Status;
@@ -107,35 +109,45 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingOutputDto> getBookingsByBookerId(Long userId, String state) {
+    public List<BookingOutputDto> getBookingsByBookerId(Long userId, String state, int from, int size) {
         Validation.checkPositiveId(User.class, userId);
+
+        PageRequest pageRequest = PageRequest.of(from / size, size);
 
         userService.checkUserIfExists(userId);
 
         List<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
-        switch (state) {
-            case "ALL":
-                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
-                break;
-            case "CURRENT":
-                bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                        currentTime, currentTime);
-                break;
-            case "PAST":
-                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, currentTime);
-                break;
-            case "FUTURE":
-                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, currentTime);
-                break;
-            case "WAITING":
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-                break;
-            case "REJECTED":
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-                break;
-            default:
-                throw new UnsupportedStatusException(state);
+
+        try {
+            State request = State.valueOf(state);
+
+            switch (request) {
+                case CURRENT:
+                    bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
+                            currentTime, currentTime, pageRequest);
+                    break;
+                case PAST:
+                    bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
+                            pageRequest);
+                    break;
+                case FUTURE:
+                    bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, currentTime,
+                            pageRequest);
+                    break;
+                case WAITING:
+                    bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
+                            pageRequest);
+                    break;
+                case REJECTED:
+                    bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
+                            pageRequest);
+                    break;
+                default:
+                    bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedStatusException(state);
         }
 
         log.info("Получение списка бронирований пользователя по id - {} со статусом - {} : {}",
@@ -147,38 +159,48 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingOutputDto> getBookingsByUserId(Long userId, String state) {
+    public List<BookingOutputDto> getBookingsByUserId(Long userId, String state, int from, int size) {
         Validation.checkPositiveId(User.class, userId);
         userService.checkUserIfExists(userId);
 
-        if (itemService.getAllByUserId(userId).isEmpty()) {
+        if (itemService.getFirstByUserId(userId) == null) {
             throw new NotAvailableException("У пользователя по id - " + userId + " нет вещей");
         }
 
+        PageRequest pageRequest = PageRequest.of(from / size, size);
+
         List<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
-        switch (state) {
-            case "ALL":
-                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
-                break;
-            case "CURRENT":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                        currentTime, currentTime);
-                break;
-            case "PAST":
-                bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, currentTime);
-                break;
-            case "FUTURE":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, currentTime);
-                break;
-            case "WAITING":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
-                break;
-            case "REJECTED":
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
-                break;
-            default:
-                throw new UnsupportedStatusException(state);
+
+        try {
+            State request = State.valueOf(state);
+
+            switch (request) {
+                case CURRENT:
+                    bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
+                            currentTime, currentTime, pageRequest);
+                    break;
+                case PAST:
+                    bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
+                            pageRequest);
+                    break;
+                case FUTURE:
+                    bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, currentTime,
+                            pageRequest);
+                    break;
+                case WAITING:
+                    bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
+                            pageRequest);
+                    break;
+                case REJECTED:
+                    bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
+                            pageRequest);
+                    break;
+                default:
+                    bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageRequest);
+            }
+        } catch (IllegalArgumentException e) {
+            throw new UnsupportedStatusException(state);
         }
 
         log.info("Получение списка бронирований владельца по id - {} со статусом - {} : {}",

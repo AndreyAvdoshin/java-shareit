@@ -1,7 +1,10 @@
 package ru.practicum.shareit.item.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.item.dto.ItemWithRequestDto;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.utils.Validation;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingMapper;
@@ -36,22 +39,26 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     public ItemServiceImpl(ItemRepository itemRepository, UserService userService,
-                           BookingRepository bookingRepository, CommentRepository commentRepository) {
+                           BookingRepository bookingRepository, CommentRepository commentRepository,
+                           ItemRequestRepository itemRequestRepository) {
         this.itemRepository = itemRepository;
         this.userService = userService;
         this.bookingRepository = bookingRepository;
         this.commentRepository = commentRepository;
+        this.itemRequestRepository = itemRequestRepository;
     }
 
     @Override
-    public List<ItemOutputDto> getAllByUserId(Long userId) {
+    public List<ItemOutputDto> getAllByUserId(Long userId, int from, int size) {
         Validation.checkPositiveId(User.class, userId);
 
         userService.checkUserIfExists(userId);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
 
-        List<Item> items = itemRepository.findByOwnerIdOrderById(userId);
+        List<Item> items = itemRepository.findByOwnerIdOrderById(userId, pageRequest);
 
         List<Booking> bookings = bookingRepository.findAllByItemOwnerId(userId);
 
@@ -88,14 +95,20 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto create(ItemDto itemDto, Long userId) {
+    public ItemWithRequestDto create(ItemWithRequestDto itemWithRequestDto, Long userId) {
         Validation.checkPositiveId(User.class, userId);
 
-        Item item = ItemMapper.toItem(itemDto);
+        Item item = ItemMapper.toItem(itemWithRequestDto);
         item.setOwner(userService.returnUserIfExists(userId));
+        if (itemWithRequestDto.getRequestId() != null) {
+            item.setRequest(itemRequestRepository
+                    .findById(itemWithRequestDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос по id - " + itemWithRequestDto.getRequestId() +
+                            " не найдена")));
+        }
 
         log.info("Создание вещи - {}", item);
-        return ItemMapper.toItemDto(itemRepository.save(item));
+        return ItemMapper.toItemWithRequestDto(itemRepository.save(item));
     }
 
     @Override
@@ -163,15 +176,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemDto> search(String text) {
+    public List<ItemDto> search(String text, int from, int size) {
         if (!text.isEmpty() && !Pattern.matches("^[\\sа-яА-Яa-zA-Z0-9]+$", text)) {
             throw new IncorrectParameterException("text");
         } else if (text.isEmpty()) {
             return new ArrayList<>();
         }
 
+        PageRequest pageRequest = PageRequest.of(from, size);
+
         log.info("Поиск вещи по строке - {}", text);
-        return itemRepository.search(text).stream()
+        return itemRepository.search(text, pageRequest).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
@@ -200,6 +215,25 @@ public class ItemServiceImpl implements ItemService {
 
         log.info("Сооздание комментария - {}", comment);
         return CommentMapper.toCommentDto(commentRepository.save(comment));
+    }
+
+    @Override
+    public List<Item> getAllWithRequests() {
+        return itemRepository.getAllWithRequests();
+    }
+
+    @Override
+    public List<ItemWithRequestDto> getAllByRequestId(Long requestId) {
+        return itemRepository.getAllByRequestId(requestId).stream()
+                .map(item -> new ItemWithRequestDto(item, requestId))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Item getFirstByUserId(Long userId) {
+        Validation.checkPositiveId(User.class, userId);
+
+        return itemRepository.findFirstByOwnerId(userId);
     }
 
     @Override

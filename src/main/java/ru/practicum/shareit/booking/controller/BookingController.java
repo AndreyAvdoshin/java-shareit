@@ -2,12 +2,15 @@ package ru.practicum.shareit.booking.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingOutputDto;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 /**
@@ -16,6 +19,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
+@Validated
 @RequestMapping(path = "/bookings")
 public class BookingController {
 
@@ -51,18 +55,24 @@ public class BookingController {
 
     @GetMapping
     public List<BookingOutputDto> getBookingsByBookerId(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
-                                                      @RequestParam(name = "state",
-                                                              defaultValue = "ALL") String state) {
-        log.info("Запрос всех бронирований по пользователю id - {} со статусом - {}", userId, state);
-        return bookingService.getBookingsByBookerId(userId, state);
+                                                        @RequestParam(name = "state",
+                                                              defaultValue = "ALL") String state,
+                                                        @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                        @RequestParam(defaultValue = "10") @Positive Integer size) {
+        log.info("Запрос всех бронирований по пользователю id - {} со статусом - {} со страницы - {} количеством - {}",
+                userId, state, from, size);
+        return bookingService.getBookingsByBookerId(userId, state, from, size);
     }
 
     @GetMapping
     @RequestMapping("/owner")
     public List<BookingOutputDto> getBookingsByUserId(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
-                                                        @RequestParam(name = "state",
-                                                                defaultValue = "ALL") String state) {
-        log.info("Запрос всех бронирований по владельцу id - {} со статусом - {}", userId, state);
-        return bookingService.getBookingsByUserId(userId, state);
+                                                      @RequestParam(name = "state",
+                                                                defaultValue = "ALL") String state,
+                                                      @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+                                                      @RequestParam(defaultValue = "10") @Positive Integer size) {
+        log.info("Запрос всех бронирований по владельцу id - {} со статусом - {} со страницы - {} количеством - {}",
+                userId, state, from, size);
+        return bookingService.getBookingsByUserId(userId, state, from, size);
     }
 }
