@@ -38,7 +38,7 @@ class BookingControllerTest {
     private BookingDto bookingDto;
 
     @BeforeEach
-    public void SetUp() {
+    public void setUp() {
         bookingDto = BookingDto.builder()
                 .itemId(1L)
                 .start(LocalDateTime.now().plusMinutes(1))

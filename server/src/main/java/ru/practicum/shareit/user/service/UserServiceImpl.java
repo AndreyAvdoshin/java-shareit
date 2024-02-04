@@ -33,6 +33,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = UserMapper.toUser(userDto);
+//        if (checkAlreadyRegisteredUser(user.getEmail())) {
+//            throw new UniqueViolatedException("Пользователь с email: " + user.getEmail() + " уже зарегистрирован");
+//        }
         user = userRepository.save(user);
         return UserMapper.toUserDto(user);
     }
@@ -84,11 +87,6 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Пользователь по id - " + userId + " не найден");
         }
     }
-
-//    private boolean checkAlreadyRegisteredUser(String email) {
-//        return getAllUsers().stream()
-//                .anyMatch(it -> it.getEmail().equalsIgnoreCase(email));
-//    }
 
     private boolean checkAlreadyRegisteredUser(String email) {
         User user = userRepository.findByEmail(email);

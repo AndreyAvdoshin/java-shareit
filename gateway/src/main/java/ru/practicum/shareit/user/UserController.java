@@ -19,7 +19,7 @@ import javax.validation.constraints.Positive;
 @Slf4j
 @Validated
 public class UserController {
-    private static UserClient userClient;
+    private final UserClient userClient;
 
     @GetMapping
     public ResponseEntity<Object> getAllUsers() {
@@ -47,8 +47,8 @@ public class UserController {
     }
 
     @DeleteMapping("/{userId}")
-    public void delete(@PathVariable @Positive @NotNull Long userId) {
+    public ResponseEntity<Object> delete(@PathVariable @Positive @NotNull Long userId) {
         log.info("Запрос удаления пользователя по id - {}", userId);
-        userClient.delete(userId);
+        return userClient.delete(userId);
     }
 }

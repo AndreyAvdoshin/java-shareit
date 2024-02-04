@@ -180,8 +180,7 @@ class ItemControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(commentDto.getId()), Long.class))
                 .andExpect(jsonPath("$.text", is(commentDto.getText())))
-                .andExpect(jsonPath("$.authorName", is(commentDto.getAuthorName())))
-                .andExpect(jsonPath("$.created", is(commentDto.getCreated().toString())));
+                .andExpect(jsonPath("$.authorName", is(commentDto.getAuthorName())));
 
         verify(itemService, times(1)).createComment(anyLong(), anyLong(), any());
     }

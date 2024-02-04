@@ -34,7 +34,7 @@ class UserControllerTest {
     private UserDto userDto;
 
     @BeforeEach
-    void SetUp() {
+    void setUp() {
         userDto = UserDto.builder()
                 .id(1L)
                 .name("User")

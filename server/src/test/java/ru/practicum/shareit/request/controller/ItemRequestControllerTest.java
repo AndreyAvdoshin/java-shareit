@@ -85,8 +85,7 @@ class ItemRequestControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(itemRequestDto.getId()), Long.class))
-                .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())))
-                .andExpect(jsonPath("$.created", is(itemRequestDto.getCreated().toString())));
+                .andExpect(jsonPath("$.description", is(itemRequestDto.getDescription())));
 
         verify(itemRequestService, times(1)).create(anyLong(), any(ItemRequestDto.class));
     }

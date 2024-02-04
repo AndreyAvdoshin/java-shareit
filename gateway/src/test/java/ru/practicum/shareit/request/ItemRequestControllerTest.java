@@ -38,7 +38,7 @@ class ItemRequestControllerTest {
 
 
     @BeforeEach
-    void SetUp() {
+    void setUp() {
         itemRequest = ItemRequestDto.builder()
                 .id(1L)
                 .description("Очень нужна эта вещь")
