@@ -44,7 +44,7 @@ public class BookingClient extends BaseClient {
         return patch(String.format("/%d?approved=%s", bookingId, approve), userId);
     }
 
-    public ResponseEntity<Object> getBooking(long userId, Long bookingId) {
+    public ResponseEntity<Object> getBooking(long userId, long bookingId) {
         return get("/" + bookingId, userId);
     }
 

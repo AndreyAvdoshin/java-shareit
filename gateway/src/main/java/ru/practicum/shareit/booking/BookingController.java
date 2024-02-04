@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -13,10 +12,9 @@ import ru.practicum.shareit.booking.dto.BookingState;
 import ru.practicum.shareit.exception.UnsupportedStatusException;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
-import java.util.List;
 
 @Controller
 @RequestMapping(path = "/bookings")
@@ -48,7 +46,7 @@ public class BookingController {
 	@PatchMapping("/{bookingId}")
 	public ResponseEntity<Object> approveByUser(@RequestHeader(name = "X-Sharer-User-Id") Long userId,
 												@PathVariable @Positive Long bookingId,
-												@RequestParam("approved") @NotBlank Boolean approved) {
+												@RequestParam("approved") @NotNull Boolean approved) {
 		log.info("Запрос подтверждения бронирования по id - {} пользователем id - {} подтверждение - {}",
 				bookingId, userId, approved);
 		return bookingClient.approve(userId, bookingId, approved);

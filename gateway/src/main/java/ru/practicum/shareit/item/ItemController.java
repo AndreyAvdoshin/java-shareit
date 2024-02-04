@@ -9,7 +9,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.exception.IncorrectParameterException;
 import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemWithRequestDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import javax.validation.Valid;
@@ -40,9 +39,9 @@ public class ItemController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<Object> create(@RequestHeader(name = "X-Sharer-User-Id") @Positive @NotNull Long userId,
-                                         @RequestBody @Valid ItemWithRequestDto itemWithRequestDto) {
-        log.info("Запрос создания вещи - {}", itemWithRequestDto);
-        return itemClient.createItem(itemWithRequestDto, userId);
+                                         @RequestBody @Valid ItemDto itemDto) {
+        log.info("Запрос создания вещи - {}", itemDto);
+        return itemClient.createItem(itemDto, userId);
     }
 
     @PatchMapping("/{itemId}")
