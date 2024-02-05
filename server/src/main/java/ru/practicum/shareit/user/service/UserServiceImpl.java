@@ -2,7 +2,6 @@ package ru.practicum.shareit.user.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.utils.Validation;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.UniqueViolatedException;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -33,25 +32,20 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = UserMapper.toUser(userDto);
-//        if (checkAlreadyRegisteredUser(user.getEmail())) {
-//            throw new UniqueViolatedException("Пользователь с email: " + user.getEmail() + " уже зарегистрирован");
-//        }
         user = userRepository.save(user);
+        log.info("Создание пользователя - {}", user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto getById(Long userId) {
-        Validation.checkPositiveId(User.class, userId);
-
         User user = returnUserIfExists(userId);
+        log.info("Получение пользователя по id - {} {}", userId, user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public UserDto update(UserDto userDto, Long userId) {
-        Validation.checkPositiveId(User.class, userId);
-
         User user = UserMapper.toUser(userDto);
         User replasedUser = returnUserIfExists(userId);
 
@@ -66,11 +60,13 @@ public class UserServiceImpl implements UserService {
             replasedUser.setName(user.getName());
         }
         user = userRepository.save(replasedUser);
+        log.info("Обновление пользователя по id - {} {}", userId, user);
         return UserMapper.toUserDto(user);
     }
 
     @Override
     public void delete(Long userId) {
+        log.info("Удаление пользователя по id - {}", userId);
         userRepository.deleteById(userId);
     }
 

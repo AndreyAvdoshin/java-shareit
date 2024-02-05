@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dto.ItemWithRequestDto;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.utils.Validation;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingMapper;
 import ru.practicum.shareit.booking.repository.BookingRepository;
@@ -53,7 +52,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemOutputDto> getAllByUserId(Long userId, int from, int size) {
-        Validation.checkPositiveId(User.class, userId);
 
         userService.checkUserIfExists(userId);
         PageRequest pageRequest = PageRequest.of(from / size, size);
@@ -96,7 +94,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemWithRequestDto create(ItemWithRequestDto itemWithRequestDto, Long userId) {
-        Validation.checkPositiveId(User.class, userId);
 
         Item item = ItemMapper.toItem(itemWithRequestDto);
         item.setOwner(userService.returnUserIfExists(userId));
@@ -113,8 +110,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto getById(Long itemId, Long userId) {
-        Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositiveId(Item.class, itemId);
 
         userService.checkUserIfExists(userId);
         Item item = returnItemIfExists(itemId);
@@ -152,8 +147,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto update(ItemDto itemDto, Long userId, Long itemId) {
-        Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositiveId(Item.class, itemId);
 
         userService.checkUserIfExists(userId);
         Item updatedItem = returnItemIfExists(itemId);
@@ -193,8 +186,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public CommentDto createComment(Long userId, Long itemId, CommentDto commentDto) {
-        Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositiveId(Item.class, itemId);
 
         User author = userService.returnUserIfExists(userId);
         Item item = returnItemIfExists(itemId);
@@ -231,8 +222,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item getFirstByUserId(Long userId) {
-        Validation.checkPositiveId(User.class, userId);
-
         return itemRepository.findFirstByOwnerId(userId);
     }
 

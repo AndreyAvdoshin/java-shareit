@@ -17,7 +17,6 @@ import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.exception.IncorrectParameterException;
 import ru.practicum.shareit.exception.NotAvailableException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.UnsupportedStatusException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.model.ItemMapper;
@@ -296,20 +295,6 @@ class BookingServiceTest {
         bookingOutputDtos = bookingService.getBookingsByUserId(owner.getId(), "REJECTED", 1, 1);
         assertEquals(bookingOutputDtos, List.of(BookingMapper.toBookingOutputDto(otherBooking)));
 
-    }
-
-    @Test
-    void shouldThrowUnsupportedStatusExceptionWhenStatusUnsupportedByBooker() {
-        assertThrows(UnsupportedStatusException.class,
-                () -> bookingService.getBookingsByBookerId(user.getId(), "ALLES", 1, 1));
-    }
-
-    @Test
-    void shouldThrowUnsupportedStatusExceptionWhenStatusUnsupportedByUser() {
-        when(itemService.getFirstByUserId(anyLong())).thenReturn(item);
-
-        assertThrows(UnsupportedStatusException.class,
-                () -> bookingService.getBookingsByUserId(user.getId(), "ALLES", 1, 1));
     }
 
     @Test

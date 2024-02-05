@@ -13,7 +13,6 @@ import ru.practicum.shareit.request.model.ItemRequestMapper;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
-import ru.practicum.shareit.utils.Validation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     public ItemRequestDto create(Long userId, ItemRequestDto itemRequestDto) {
-        Validation.checkPositiveId(User.class, userId);
 
         User requestor = userService.returnUserIfExists(userId);
         ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto);
@@ -46,7 +44,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     }
 
     public List<ItemRequestDto> getRequests(Long userId) {
-        Validation.checkPositiveId(User.class, userId);
 
         userService.checkUserIfExists(userId);
         List<ItemRequest> itemRequests = itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId);
@@ -68,21 +65,18 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto getRequestById(Long userId, Long requestId) {
-        Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositiveId(ItemRequest.class, requestId);
         userService.checkUserIfExists(userId);
 
         ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(returnItemRequestIfExists(requestId));
         List<ItemWithRequestDto> itemWithRequestDtos = itemService.getAllByRequestId(requestId);
         itemRequestDto.setItems(itemWithRequestDtos == null ? new ArrayList<>() : itemWithRequestDtos);
 
+        log.info("Получение запроса по id - {} пользователем - {} запрос {}", requestId, userId, itemRequestDto);
         return itemRequestDto;
     }
 
     @Override
     public List<ItemRequestDto> getAllRequests(int from, int size, Long userId) {
-        Validation.checkPositiveId(User.class, userId);
-        //Validation.checkPositivePagination(from, size);
         userService.checkUserIfExists(userId);
 
         PageRequest pageRequest = PageRequest.of(from / size, size);

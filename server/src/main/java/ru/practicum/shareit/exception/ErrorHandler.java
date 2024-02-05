@@ -55,13 +55,6 @@ public class ErrorHandler {
         return new ErrorResponse("error", e.getMessage());
     }
 
-    @ExceptionHandler(UnsupportedStatusException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse unsupportedStatusException(final RuntimeException e) {
-        log.error("Вызвана ошибка неккорректного статуса - {}", e.getMessage());
-        return new ErrorResponse("Unknown state: UNSUPPORTED_STATUS", e.getMessage());
-    }
-
     @ExceptionHandler(BookingSelfItemException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse bookingSelfItemException(final RuntimeException e) {

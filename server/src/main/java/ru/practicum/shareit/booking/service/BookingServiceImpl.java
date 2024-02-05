@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.State;
-import ru.practicum.shareit.utils.Validation;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -37,7 +36,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingOutputDto create(BookingDto bookingDto, Long userId) {
-        Validation.checkPositiveId(User.class, userId);
 
         User booker = userService.returnUserIfExists(userId);
         Item item = itemService.returnItemIfExists(bookingDto.getItemId());
@@ -65,8 +63,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingOutputDto approve(Long userId, Long bookingId, boolean approve) {
-        Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositiveId(Booking.class, bookingId);
 
         Booking booking = returnBookingIfExists(bookingId);
         userService.checkUserIfExists(userId);
@@ -93,8 +89,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingOutputDto getBooking(Long userId, Long bookingId) {
-        Validation.checkPositiveId(User.class, userId);
-        Validation.checkPositiveId(Booking.class, bookingId);
 
         Booking booking = returnBookingIfExists(bookingId);
         userService.checkUserIfExists(userId);
@@ -110,7 +104,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingOutputDto> getBookingsByBookerId(Long userId, String state, int from, int size) {
-        Validation.checkPositiveId(User.class, userId);
 
         PageRequest pageRequest = PageRequest.of(from / size, size);
 
@@ -119,36 +112,33 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
 
-        try {
-            State request = State.valueOf(state);
+        State request = State.valueOf(state);
 
-            switch (request) {
-                case CURRENT:
-                    bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                            currentTime, currentTime, pageRequest);
-                    break;
-                case PAST:
-                    bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
-                            pageRequest);
-                    break;
-                case FUTURE:
-                    bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, currentTime,
-                            pageRequest);
-                    break;
-                case WAITING:
-                    bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
-                            pageRequest);
-                    break;
-                case REJECTED:
-                    bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
-                            pageRequest);
-                    break;
-                default:
-                    bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
-            }
-        } catch (IllegalArgumentException e) {
-            throw new UnsupportedStatusException(state);
+        switch (request) {
+            case CURRENT:
+                bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
+                        currentTime, currentTime, pageRequest);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
+                        pageRequest);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, currentTime,
+                        pageRequest);
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
+                        pageRequest);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
+                        pageRequest);
+                break;
+            default:
+                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageRequest);
         }
+
 
         log.info("Получение списка бронирований пользователя по id - {} со статусом - {} : {}",
                 userId, state, bookings);
@@ -160,7 +150,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<BookingOutputDto> getBookingsByUserId(Long userId, String state, int from, int size) {
-        Validation.checkPositiveId(User.class, userId);
         userService.checkUserIfExists(userId);
 
         if (itemService.getFirstByUserId(userId) == null) {
@@ -172,35 +161,31 @@ public class BookingServiceImpl implements BookingService {
         List<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
 
-        try {
-            State request = State.valueOf(state);
+        State request = State.valueOf(state);
 
-            switch (request) {
-                case CURRENT:
-                    bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                            currentTime, currentTime, pageRequest);
-                    break;
-                case PAST:
-                    bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
-                            pageRequest);
-                    break;
-                case FUTURE:
-                    bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, currentTime,
-                            pageRequest);
-                    break;
-                case WAITING:
-                    bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
-                            pageRequest);
-                    break;
-                case REJECTED:
-                    bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
-                            pageRequest);
-                    break;
-                default:
-                    bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageRequest);
-            }
-        } catch (IllegalArgumentException e) {
-            throw new UnsupportedStatusException(state);
+        switch (request) {
+            case CURRENT:
+                bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
+                        currentTime, currentTime, pageRequest);
+                break;
+            case PAST:
+                bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
+                        pageRequest);
+                break;
+            case FUTURE:
+                bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, currentTime,
+                        pageRequest);
+                break;
+            case WAITING:
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
+                        pageRequest);
+                break;
+            case REJECTED:
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
+                        pageRequest);
+                break;
+            default:
+                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, pageRequest);
         }
 
         log.info("Получение списка бронирований владельца по id - {} со статусом - {} : {}",
